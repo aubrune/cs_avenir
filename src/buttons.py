@@ -20,23 +20,13 @@ class Buttons(object):
         self.hope_led_status = LightStatus.OFF
         self.fear_led_status_previous = LightStatus.OFF
         self.hope_led_status_previous = LightStatus.OFF
-        self.led_synced = False
-        self._fear_led_on = False
-        self._hope_led_on = False
-
+       
         rospy.Subscriber("cs_sawyer/light/fear", LightStatus, self._fear_light_update)
-        rospy.Subscriber("cs_sawyer/light/hope", LightStatus, self._hope_light_update
+        rospy.Subscriber("cs_sawyer/light/hope", LightStatus, self._hope_light_update)
 
-    def _fear_light_update(self, msg):
-        self.fear_led_status_previous = self.fear_led_status
-        self.fear_led_status = msg.type.data
-        self.last_received_led_time = rospy.Time.now()
+   
 
-    def _hope_light_update(self, msg):
-        self.hope_led_status_previous = self.hope_led_status
-        self.hope_led_status = msg.type.data
-        self.last_received_led_time = rospy.Time.now()
-
+  
 
     def pressed(self, emotion, current_state):
         if gpio_available:
@@ -157,11 +147,11 @@ class Buttons(object):
             now = rospy.Time.now()
             self.update_leds(now)
             self.update_buttons(now)
-rate.sleep()
+            rate.sleep()
 
 
 
 if __name__ == '__main__':
-    rospy.init_node("cs_sawyer_buttons")
+    rospy.init_node("cs_avenir_buttons")
     buttons = Buttons()
     buttons.run()
