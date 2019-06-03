@@ -3,7 +3,9 @@
 
 import rospy
 from std_msgs.msg import UInt8
+from edo_core_msgs.msg import JointInit
 import rospkg
+import time
 import json
 from os.path import join
 import sys
@@ -89,7 +91,6 @@ class MoveEdo(object):
         # In practice, you should use the class variables directly unless you have a good
         # reason not to.
         pub=rospy.Publisher("/gripper_state",Bool,queue_size=1)
-        
         move_group = self.move_group
         ##
         ## Planning to a Joint Goal
@@ -98,21 +99,36 @@ class MoveEdo(object):
         joint_goal = move_group.get_current_joint_values()
         rospack = rospkg.RosPack()
 
-        with open(join(rospack.get_path("cs_avenir"), "config/poses.json")) as f:
+        with open(join(rospack.get_path("cs_avenir"), "config/move.json")) as f:
             poses = json.load(f)
+        
+        cpt = 0
 
-        for i in range(6):
-            joint_goal[i]=poses[str]["joints"][i] 
+        gripper_state=poses[str]["gripper_open"]
+        for move in poses[str]["joints"]:
 
+            #rospy.loginfo(gripper_state[cpt])
+            
+
+            
+            for i in range(6):
+                joint_goal[i]=move[i]
+                if gripper_state[cpt]==3:
+                    pub.publish(0) # close gripper
+                    time.sleep( 1 ) # wait 6*1secondes
+
+                else:
+                    pub.publish(gripper_state[cpt])
+
+            
         # The go command can be called with joint values, poses, or without any
         # parameters if you have already set the pose or joint target for the group
-        move_group.go(joint_goal, wait=True)
-        rospy.loginfo(poses[str]["gripper_open"])
-        pub.publish(poses[str]["gripper_open"])
+            move_group.go(joint_goal, wait=True)
+            cpt+=1
         
        
         # Calling ``stop()`` ensures that there is no residual movement
-        move_group.stop()
+            move_group.stop()
         
 
 
@@ -131,13 +147,17 @@ def callback(data):
 
 def listen():
 
-    # In ROS, nodes are uniquely named. If two nodes with the same
-    # name are launched, the previous one is kicked off. The
-    # anonymous=True flag means that rospy will choose a unique
-    # name for our 'listener' node so that multiple listeners can
-    # run simultaneously.
     rospy.init_node('sub_test', anonymous=True)
-
+    machine_init = rospy.Publisher('machine_init', JointInit, queue_size=10, latch=True)
+    # first param: mode 3 - manage collision thresold
+    # second param: axes mask (63 affect all axes)
+    # third param: current threshold  
+    imsg = JointInit()        
+    imsg.mode = 3
+    imsg.joints_mask = 127
+    imsg.reduction_factor = 100.0
+    # publish init to remove collision 
+    machine_init.publish(imsg)
     rospy.Subscriber("cs_avenir/buttons", UInt8, callback)
 
     # spin() simply keeps python from exiting until this node is stopped
