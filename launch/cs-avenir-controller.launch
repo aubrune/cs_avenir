@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>  
+  <node pkg="cs_avenir" type="controller.py" name="cs_avenir_controller" output="screen" respawn="true"/>
+</launch>

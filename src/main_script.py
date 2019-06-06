@@ -19,9 +19,34 @@ from std_msgs.msg import Bool
 from moveit_commander.conversions import pose_to_list
 
 
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    gpio_available = False
+else:
+    gpio_available = True
 
 class MoveEdo(object):
-  """MoveEdoTutorial"""
+
+    PIN_LED_INDUSTRIEL = 2 # OUT
+    PIN_BUTTON_INDUSTRIEL= 3 #IN
+
+    PIN_LED_MILITAIRE = 4
+    PIN_BUTTON_MILITAIRE = 15
+
+    #PIN_LED_SEXUEL = None
+    #PIN_BUTTON_SEXUEL= None
+
+    #PIN_LED_JUDICIAIRE = None
+    #PIN_BUTTON_JUDICIAIRE = None
+
+    #PIN_LED_SOCIAL = None
+    #PIN_BUTTON_SOCIAL = None
+
+    #PIN_LED_VOITURE = None
+    #PIN_BUTTON_VOITURE = None
+
+
   def __init__(self):
         super(MoveEdo, self).__init__()
 
@@ -84,6 +109,17 @@ class MoveEdo(object):
         self.planning_frame = planning_frame
         self.eef_link = eef_link
         self.group_names = group_names
+
+        if gpio_available:
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(self.PIN_BUTTON_INDUSTRIEL, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+            GPIO.setup(self.PIN_BUTTON_MILITAIRE, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+            GPIO.setup(self.PIN_LED_INDUSTRIEL, GPIO.OUT)
+            GPIO.setup(self.PIN_LED_MILITAIRE, GPIO.OUT)
+        else:
+            rospy.logwarn("Node hasn't found the GPIO, buttons will not work")
+        rospy.loginfo("Buttons node is started!")
+
     
   
   def robot_move(self,str):
@@ -135,7 +171,7 @@ class MoveEdo(object):
 def callback(data):
 
     rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
-    action = ["sexuel","hotel","judiciaire","social","voiture","militaire"]
+    action = ["sexuel","industriel","judiciaire","social","voiture","militaire"]
     robot = MoveEdo()
 
     if data.data == None:
