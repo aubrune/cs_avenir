@@ -22,7 +22,7 @@ else:
         PIN_BUTTON_HOTEL= 3 #IN
 
         PIN_LED_MILITAIRE = 4
-        PIN_BUTTON_MILITAIRE = 15
+        PIN_BUTTON_MILITAIRE = 14
 
         #PIN_LED_SEXUEL = None
         #PIN_BUTTON_SEXUEL= None
